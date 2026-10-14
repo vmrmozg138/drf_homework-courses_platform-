@@ -1,0 +1,2 @@
+class CoursesConfig:
+    name = "courses"
