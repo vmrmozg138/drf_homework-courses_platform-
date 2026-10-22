@@ -1,24 +1,29 @@
-from django.contrib import admin
-from django.urls import include, path
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .apps import CoursesConfig
-from .views import (CourseViewSet, LessonCreateAPIView, LessonDestroyAPIView,
-                    LessonListAPIView, LessonRetrieveAPIView,
-                    LessonUpdateAPIView)
+from .views import (
+    CourseViewSet,
+    LessonCreateAPIView,
+    LessonDestroyAPIView,
+    LessonListAPIView,
+    LessonRetrieveAPIView,
+    LessonUpdateAPIView,
+)
 
 app_name = CoursesConfig.name
 
 router = DefaultRouter()
 router.register("courses", CourseViewSet, basename="courses")
+
 urlpatterns = [
-    path("admin/", admin.site.urls),
     path("lessons/create/", LessonCreateAPIView.as_view(), name="lesson-create"),
     path("lessons/list/", LessonListAPIView.as_view(), name="lesson-list"),
     path("lessons/<int:pk>/", LessonRetrieveAPIView.as_view(), name="lesson-detail"),
     path(
-        "lessons/update/<int:pk>/", LessonUpdateAPIView.as_view(), name="lesson-update"
+        "lessons/update/<int:pk>/",
+        LessonUpdateAPIView.as_view(),
+        name="lesson-update",
     ),
     path("lessons/delete", LessonDestroyAPIView.as_view(), name="lesson-delete"),
-    path("users/", include("users.urls", namespace="users")),
 ] + router.urls
