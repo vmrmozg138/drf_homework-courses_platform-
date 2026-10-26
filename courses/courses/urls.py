@@ -2,14 +2,9 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .apps import CoursesConfig
-from .views import (
-    CourseViewSet,
-    LessonCreateAPIView,
-    LessonDestroyAPIView,
-    LessonListAPIView,
-    LessonRetrieveAPIView,
-    LessonUpdateAPIView,
-)
+from .views import (CourseViewSet, LessonCreateAPIView, LessonDestroyAPIView,
+                    LessonListAPIView, LessonRetrieveAPIView,
+                    LessonUpdateAPIView)
 
 app_name = CoursesConfig.name
 
