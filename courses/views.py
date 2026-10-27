@@ -1,8 +1,12 @@
-from rest_framework import generics, permissions, viewsets
+from rest_framework import generics, permissions, viewsets, status
 from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .models import Course, Lesson
+from .models import Course, Lesson, CourseSubscription
+from .paginators import CoursePagination, LessonPagination
 from .permissions import IsModerator, IsNotModerator, IsOwner
 from .serializers import CourseSerializer, LessonSerializer
 
@@ -12,6 +16,7 @@ from .serializers import CourseSerializer, LessonSerializer
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    pagination_class = CoursePagination
 
     def get_permissions(self):
 
@@ -58,7 +63,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 class LessonCreateAPIView(generics.CreateAPIView):
     serializer_class = LessonSerializer
-    permission_classes = IsAuthenticated
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         if not Course.objects.exists():
@@ -69,6 +74,7 @@ class LessonCreateAPIView(generics.CreateAPIView):
 
 class LessonListAPIView(generics.ListAPIView):
     serializer_class = LessonSerializer
+    pagination_class = LessonPagination
 
     def get_queryset(self):
         qs = Lesson.objects.all()
@@ -82,7 +88,7 @@ class LessonListAPIView(generics.ListAPIView):
 
         return qs.filter(owner=user)
 
-    permission_classes = IsAuthenticated
+    permission_classes = [IsAuthenticated]
 
 
 class LessonRetrieveAPIView(generics.RetrieveAPIView):
@@ -112,3 +118,33 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
 
     def get_permissions(self):
         return [IsOwner()]
+
+'''контроллер для подписки'''
+class CourseSubscribeToggleView(APIView):
+    def post(self, request, course_id):
+        user = request.user
+        if not user.is_authenticated:
+            return Response(
+                {"detail": "Требуется авторизация."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        course = get_object_or_404(Course, id=course_id)
+
+        # Ищем существующую подписку пользователя на этот курс
+        subs_item = CourseSubscription.objects.filter(
+            user=user, course=course
+        )
+
+        if subs_item.exists():
+            # Подписка есть → удаляем
+            subs_item.delete()
+            message = "Подписка удалена"
+            status_code = status.HTTP_200_OK
+        else:
+            # Подписки нет → создаём
+            CourseSubscription.objects.create(user=user, course=course)
+            message = "Подписка добавлена"
+            status_code = status.HTTP_201_CREATED
+
+        return Response({"message": message}, status=status_code)
