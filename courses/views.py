@@ -1,11 +1,11 @@
-from rest_framework import generics, permissions, viewsets, status
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Course, Lesson, CourseSubscription
+from .models import Course, CourseSubscription, Lesson
 from .paginators import CoursePagination, LessonPagination
 from .permissions import IsModerator, IsNotModerator, IsOwner
 from .serializers import CourseSerializer, LessonSerializer
@@ -119,7 +119,10 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     def get_permissions(self):
         return [IsOwner()]
 
-'''контроллер для подписки'''
+
+"""контроллер для подписки"""
+
+
 class CourseSubscribeToggleView(APIView):
     def post(self, request, course_id):
         user = request.user
@@ -132,9 +135,7 @@ class CourseSubscribeToggleView(APIView):
         course = get_object_or_404(Course, id=course_id)
 
         # Ищем существующую подписку пользователя на этот курс
-        subs_item = CourseSubscription.objects.filter(
-            user=user, course=course
-        )
+        subs_item = CourseSubscription.objects.filter(user=user, course=course)
 
         if subs_item.exists():
             # Подписка есть → удаляем
