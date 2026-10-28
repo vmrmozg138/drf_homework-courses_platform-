@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Course, Lesson, CourseSubscription
+from .models import Course, CourseSubscription, Lesson
 from .validators import validate_only_youtube_links
 
 """LessonShortSerializer это для отображения вложенного сериализатора в курсе"""
@@ -50,22 +50,17 @@ class CourseSerializer(serializers.ModelSerializer):
 
 class LessonSerializer(serializers.ModelSerializer):
     video_url = serializers.URLField(
-        allow_blank=True,
-        required=False,
-        validators=[validate_only_youtube_links]
+        allow_blank=True, required=False, validators=[validate_only_youtube_links]
     )
 
     class Meta:
         model = Lesson
-        fields = (
-            "id",
-            "title",
-            "description",
-            "course",
-            "video_url"
-        )
+        fields = ("id", "title", "description", "course", "video_url")
 
-'''сериализатор для подписки'''
+
+"""сериализатор для подписки"""
+
+
 class CourseSubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseSubscription

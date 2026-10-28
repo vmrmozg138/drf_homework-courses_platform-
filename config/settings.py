@@ -1,9 +1,12 @@
+import os
 from datetime import timedelta
 from pathlib import Path
 
+import dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+STRIPE_API_KEY = os.getenv("STRIPE_API_KEY")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
@@ -31,6 +34,8 @@ INSTALLED_APPS = [
     "users",
     "django_filters",
     "rest_framework_simplejwt",
+    "drf_yasg",
+    "corsheaders",
 ]
 
 REST_FRAMEWORK = {
@@ -53,6 +58,19 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "https://example.com",
+    "https://sub.example.com",
+    "http://localhost:8080",
+    "http://127.0.0.1:9000",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8080",
+    "http://127.0.0.1:9000",
 ]
 
 ROOT_URLCONF = "config.urls"

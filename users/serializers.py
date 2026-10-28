@@ -9,6 +9,39 @@ class PaymentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+"""Добавлен сериализатор для создания платежа"""
+
+
+class PaymentCreateSerializer(serializers.Serializer):
+    course_id = serializers.IntegerField(required=False)
+    lesson_id = serializers.IntegerField(required=False)
+
+    def validate(self, attrs):
+        course_id = attrs.get("course_id")
+        lesson_id = attrs.get("lesson_id")
+
+        if bool(course_id) == bool(lesson_id):
+            raise serializers.ValidationError(
+                "Укажите course_id или lesson_id, но не оба сразу."
+            )
+
+        return attrs
+
+
+"""А также сериализатор для проверки статуса платежа"""
+
+
+class PaymentStatusSerializer(serializers.Serializer):
+    payment_id = serializers.IntegerField()
+    status = serializers.CharField()
+    stripe_payment_status = serializers.CharField(
+        allow_null=True,
+    )
+    stripe_session_status = serializers.CharField(
+        allow_null=True,
+    )
+
+
 """поменял местами сериализаторы - использую вложенный сериализатор платежа 
 в сериализаторе пользователя для вывода истории платежей. а для того, чтобы 
 порядок был по возрастанию даты, прописан ordering в модели платежа """
