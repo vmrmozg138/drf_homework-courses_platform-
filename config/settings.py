@@ -3,6 +3,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import dotenv
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,6 +37,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "drf_yasg",
     "corsheaders",
+    "django_celery_beat",
 ]
 
 REST_FRAMEWORK = {
@@ -128,7 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Moscow"
 
 USE_I18N = True
 
@@ -150,4 +152,38 @@ MAILERS = {
     },
 }
 
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST")  # Адрес SMTP-сервера
+EMAIL_PORT = os.getenv("EMAIL_PORT")  # Порт (обычно 587 для TLS или 465 для SSL)
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")  # Логин (ваш email)
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")  # Пароль или пароль приложения
+EMAIL_USE_TLS = True  # Использовать TLS (True/False)
+EMAIL_USE_SSL = False  # Использовать SSL (True/False)
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # Email отправителя по умолчанию
+
+SERVER_EMAIL = EMAIL_HOST_USER
+
 AUTH_USER_MODEL = "users.User"
+
+# URL-адрес брокера сообщений
+CELERY_BROKER_URL = "redis://localhost:6379"  # Например, Redis, который по умолчанию работает на порту 6379
+
+# URL-адрес брокера результатов, также Redis
+CELERY_RESULT_BACKEND = "redis://localhost:6379"
+
+# Часовой пояс для работы Celery
+CELERY_TIMEZONE = TIME_ZONE
+
+# Флаг отслеживания выполнения задач
+CELERY_TASK_TRACK_STARTED = True
+
+# Максимальное время на выполнение задачи
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+CELERY_BEAT_SCHEDULE = {
+    "deactivate-inactive-users-daily": {
+        "task": "users.tasks.deactivate_inactive_users",  # Путь к задаче
+        "schedule": crontab(hour=3, minute=00),
+    },
+}
+CELERY_TIMEZONE = "UTC"

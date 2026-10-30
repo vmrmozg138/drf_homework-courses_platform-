@@ -9,6 +9,7 @@ from .models import Course, CourseSubscription, Lesson
 from .paginators import CoursePagination, LessonPagination
 from .permissions import IsModerator, IsNotModerator, IsOwner
 from .serializers import CourseSerializer, LessonSerializer
+from .tasks import send_course_update_notification
 
 """Контроллер для модели Course реализован через ViewSet"""
 
@@ -69,7 +70,10 @@ class LessonCreateAPIView(generics.CreateAPIView):
         if not Course.objects.exists():
             raise ValidationError({"course": "Сначала необходимо создать курс."})
 
-        serializer.save(owner=self.request.user)
+        lesson = serializer.save(owner=self.request.user)
+        course = lesson.course
+        course.save()
+        send_course_update_notification.delay(course.id)
 
 
 class LessonListAPIView(generics.ListAPIView):
@@ -111,6 +115,12 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
         if user.is_authenticated and user.groups.filter(name="moderator").exists():
             return [IsModerator()]
         return [IsOwner()]
+
+    def perform_update(self, serializer):
+        lesson = serializer.save()
+        course = lesson.course
+        course.save()
+        send_course_update_notification.delay(course.id)
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):

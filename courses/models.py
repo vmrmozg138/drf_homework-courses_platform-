@@ -27,6 +27,8 @@ class Course(models.Model):
         blank=True,
         null=True,
     )
+    """новое поле"""
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
 
     def __str__(self):
         return self.title

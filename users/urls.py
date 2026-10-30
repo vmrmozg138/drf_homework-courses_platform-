@@ -16,7 +16,7 @@ app_name = UsersConfig.name
 
 
 urlpatterns = [
-    path("login", TokenObtainPairView.as_view(), name="login"),
+    path("login/", TokenObtainPairView.as_view(), name="login"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("users/", UserListAPIView.as_view(), name="user-list"),
     path("users/<int:pk>/", UserRetrieveAPIView.as_view(), name="user-detail"),
