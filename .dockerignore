@@ -1,0 +1,17 @@
+.coverage
+.env
+.flake8
+.gitignore
+celerybeat-schedule
+coverage.txt
+db.sqlite3
+README.md
+.git/
+.idea/
+__pycache__/
+.venv/
+*.pyc
+*.pyo
+.pytest_cache/
+venv/
+.mypy_cache/
