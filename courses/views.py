@@ -1,14 +1,15 @@
-from rest_framework import generics, permissions, viewsets, status
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Course, Lesson, CourseSubscription
+from .models import Course, CourseSubscription, Lesson
 from .paginators import CoursePagination, LessonPagination
 from .permissions import IsModerator, IsNotModerator, IsOwner
 from .serializers import CourseSerializer, LessonSerializer
+from .tasks import send_course_update_notification
 
 """Контроллер для модели Course реализован через ViewSet"""
 
@@ -69,7 +70,10 @@ class LessonCreateAPIView(generics.CreateAPIView):
         if not Course.objects.exists():
             raise ValidationError({"course": "Сначала необходимо создать курс."})
 
-        serializer.save(owner=self.request.user)
+        lesson = serializer.save(owner=self.request.user)
+        course = lesson.course
+        course.save()
+        send_course_update_notification.delay(course.id)
 
 
 class LessonListAPIView(generics.ListAPIView):
@@ -112,6 +116,12 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
             return [IsModerator()]
         return [IsOwner()]
 
+    def perform_update(self, serializer):
+        lesson = serializer.save()
+        course = lesson.course
+        course.save()
+        send_course_update_notification.delay(course.id)
+
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
     queryset = Lesson.objects.all()
@@ -119,7 +129,10 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     def get_permissions(self):
         return [IsOwner()]
 
-'''контроллер для подписки'''
+
+"""контроллер для подписки"""
+
+
 class CourseSubscribeToggleView(APIView):
     def post(self, request, course_id):
         user = request.user
@@ -132,9 +145,7 @@ class CourseSubscribeToggleView(APIView):
         course = get_object_or_404(Course, id=course_id)
 
         # Ищем существующую подписку пользователя на этот курс
-        subs_item = CourseSubscription.objects.filter(
-            user=user, course=course
-        )
+        subs_item = CourseSubscription.objects.filter(user=user, course=course)
 
         if subs_item.exists():
             # Подписка есть → удаляем

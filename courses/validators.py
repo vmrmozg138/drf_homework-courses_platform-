@@ -1,9 +1,11 @@
 import re
+
 from rest_framework import serializers
 
 YOUTUBE_ONLY_PATTERN = re.compile(
-    r'(?:https?://)(?:www\.)?youtube\.com/watch\?v=[A-Za-z0-9_-]{11}\b'
+    r"(?:https?://)(?:www\.)?youtube\.com/watch\?v=[A-Za-z0-9_-]{11}\b"
 )
+
 
 def validate_only_youtube_links(value: str) -> str:
     if not value:
@@ -14,5 +16,3 @@ def validate_only_youtube_links(value: str) -> str:
             "Разрешена только ссылка на YouTube вида youtube.com/watch?v=..."
         )
     return value
-
-

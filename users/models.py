@@ -68,15 +68,35 @@ class User(AbstractUser):
 
 
 class Payment(models.Model):
-
     CASH = "cash"
     TRANSACTION = "transaction"
+    STRIPE = "stripe"
 
-    PAYMENT_CHOICES = [(CASH, "Наличные"), (TRANSACTION, "Перевод")]
+    PAYMENT_CHOICES = [
+        (CASH, "Наличные"),
+        (TRANSACTION, "Банковский перевод"),
+        (STRIPE, "Stripe"),
+    ]
+
+    PENDING = "pending"
+    PAID = "paid"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+    STATUS_CHOICES = [
+        (PENDING, "Ожидает оплаты"),
+        (PAID, "Оплачен"),
+        (FAILED, "Ошибка оплаты"),
+        (CANCELLED, "Отменён"),
+    ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payments")
     payment_date = models.DateField()
-    amount = models.FloatField()
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Сумма платежа",
+    )
     course = models.ForeignKey(
         Course, on_delete=models.CASCADE, related_name="payments", blank=True, null=True
     )
@@ -85,6 +105,27 @@ class Payment(models.Model):
     )
     payment_type = models.CharField(
         choices=PAYMENT_CHOICES, max_length=15, verbose_name="Способ оплаты"
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default=PENDING,
+        verbose_name="Статус платежа",
+    )
+
+    session_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        verbose_name="Id сессии",
+        help_text="Укажите Id сессии",
+    )
+    link = models.URLField(
+        max_length=399,
+        null=True,
+        blank=True,
+        verbose_name="Ссылка на оплату",
+        help_text="Укажите ссылку на оплату",
     )
 
     class Meta:
