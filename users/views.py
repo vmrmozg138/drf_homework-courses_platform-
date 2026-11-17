@@ -2,7 +2,7 @@ from datetime import date
 
 import requests
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics, status, viewsets
+from rest_framework import generics, status
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -63,7 +63,7 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
