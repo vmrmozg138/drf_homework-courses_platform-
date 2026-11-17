@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Group
 from django.test import TestCase
 from rest_framework import status
-from rest_framework.test import APIClient, force_authenticate
+from rest_framework.test import APIClient
 
 from users.models import User
 

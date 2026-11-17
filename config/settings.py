@@ -3,8 +3,6 @@ from datetime import timedelta
 from pathlib import Path
 import sys
 
-
-import dotenv
 from celery.schedules import crontab
 from dotenv import load_dotenv
 
@@ -40,8 +38,7 @@ ALLOWED_HOSTS = [
         "localhost,127.0.0.1",
     ).split(",")
     if host.strip()
-    ]
-
+]
 
 
 # Application definition

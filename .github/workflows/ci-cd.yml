@@ -1,0 +1,76 @@
+
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - f9
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  tests:
+    name: Django tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install --with dev --no-root
+
+      - name: Run Django tests
+        env:
+          SECRET_KEY: test-secret-key
+          DEBUG: "False"
+          ALLOWED_HOSTS: localhost,127.0.0.1
+          CELERY_BROKER_URL: memory://
+          CELERY_RESULT_BACKEND: cache+memory://
+        run: poetry run python manage.py test
+
+  lint:
+    name: Flake8
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install --with dev --no-root
+
+      - name: Run Flake8
+        run: poetry run flake8 .
+
+  build:
+    name: Docker build
+    runs-on: ubuntu-latest
+    needs:
+      - tests
+      - lint
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t drf-homework:ci .
